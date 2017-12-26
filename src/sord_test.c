@@ -36,8 +36,9 @@ typedef struct {
 static SordNode*
 uri(SordWorld* world, int num)
 {
-	if (num == 0)
+	if (num == 0) {
 		return 0;
+	}
 
 	char  str[]   = "eg:000";
 	char* uri_num = str + 3;  // First `0'
@@ -189,8 +190,9 @@ test_read(SordWorld* world, SordModel* sord, SordNode* g,
 		return test_fail("Fail: Iterator has incorrect sord pointer\n");
 	}
 
-	for (; !sord_iter_end(iter); sord_iter_next(iter))
+	for (; !sord_iter_end(iter); sord_iter_next(iter)) {
 		sord_iter_get(iter, id);
+	}
 
 	// Attempt to increment past end
 	if (!sord_iter_next(iter)) {
@@ -312,8 +314,9 @@ test_read(SordWorld* world, SordModel* sord, SordNode* g,
 	iter = sord_search(sord, NULL, NULL, NULL, NULL);
 	for (; !sord_iter_end(iter); sord_iter_next(iter)) {
 		sord_iter_get(iter, id);
-		if (id[0] == last_subject)
+		if (id[0] == last_subject) {
 			continue;
+		}
 
 		SordQuad  subpat          = { id[0], 0, 0 };
 		SordIter* subiter         = sord_find(sord, subpat);
@@ -401,14 +404,14 @@ main(int argc, char** argv)
 	sord_world_set_error_sink(world, expected_error, NULL);
 
 	// Attempt to create invalid CURIE
-	SerdNode  base   = serd_node_from_string(SERD_URI, USTR("http://example.org/"));
-	SerdEnv*  env    = serd_env_new(&base);
-	SerdNode  sbadns = serd_node_from_string(SERD_CURIE, USTR("badns:"));
-	SordNode* badns  = sord_node_from_serd_node(world, env, &sbadns, NULL, NULL);
-	if (badns) {
+	SerdNode  base = serd_node_from_string(SERD_URI, USTR("http://example.org/"));
+	SerdEnv*  env  = serd_env_new(&base);
+	SerdNode  sbad = serd_node_from_string(SERD_CURIE, USTR("bad:"));
+	SordNode* bad  = sord_node_from_serd_node(world, env, &sbad, NULL, NULL);
+	if (bad) {
 		return test_fail("Successfully created CURIE with bad namespace\n");
 	}
-	sord_node_free(world, badns);
+	sord_node_free(world, bad);
 	serd_env_free(env);
 
 	// Attempt to create node from garbage
@@ -535,7 +538,7 @@ main(int argc, char** argv)
 		                 sord_num_nodes(world), initial_num_nodes);
 	}
 
-	const uint8_t ni_hao[] = { 0xE4, 0xBD, 0xA0, 0xE5, 0xA5, 0xBD };
+	const uint8_t ni_hao[] = { 0xE4, 0xBD, 0xA0, 0xE5, 0xA5, 0xBD, 0 };
 	SordNode*     chello   = sord_new_literal(world, NULL, ni_hao, "cmn");
 
 	// Test literal length
@@ -551,6 +554,8 @@ main(int argc, char** argv)
 	str = sord_node_get_string_measured(lit_id2, &n_bytes, &n_chars);
 	if (n_bytes != strlen("hello") || n_chars != strlen("hello")) {
 		return test_fail("ASCII literal measured length incorrect\n");
+	} else if (strcmp((const char*)str, "hello")) {
+		return test_fail("ASCII literal string incorrect\n");
 	}
 
 	str = sord_node_get_string_measured(chello, &n_bytes, &n_chars);
@@ -558,6 +563,8 @@ main(int argc, char** argv)
 		return test_fail("Multi-byte literal byte count incorrect\n");
 	} else if (n_chars != 2) {
 		return test_fail("Multi-byte literal character count incorrect\n");
+	} else if (strcmp((const char*)str, (const char*)ni_hao)) {
+		return test_fail("Multi-byte literal string incorrect\n");
 	}
 
 	// Check interning doesn't clash non-equivalent values
@@ -624,8 +631,9 @@ main(int argc, char** argv)
 		sord = sord_new(world, (1 << i), false);
 		printf("Testing Index `%s'\n", index_names[i]);
 		generate(world, sord, n_quads, 0);
-		if (test_read(world, sord, 0, n_quads))
+		if (test_read(world, sord, 0, n_quads)) {
 			return finished(world, sord, EXIT_FAILURE);
+		}
 		sord_free(sord);
 	}
 
@@ -638,8 +646,9 @@ main(int argc, char** argv)
 		printf("Testing Index `%s'\n", graph_index_names[i]);
 		SordNode* graph = uri(world, 42);
 		generate(world, sord, n_quads, graph);
-		if (test_read(world, sord, graph, n_quads))
+		if (test_read(world, sord, graph, n_quads)) {
 			return finished(world, sord, EXIT_FAILURE);
+		}
 		sord_free(sord);
 	}
 

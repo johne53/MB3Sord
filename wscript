@@ -20,20 +20,21 @@ VERSION = SORD_VERSION  # Package version for waf dist
 top     = '.'           # Source directory
 out     = 'build'       # Build directory
 
-def options(opt):
-    opt.load('compiler_c')
-    opt.load('compiler_cxx')
-    autowaf.set_options(opt, test=True)
+def options(ctx):
+    ctx.load('compiler_c')
+    ctx.load('compiler_cxx')
+    autowaf.set_options(ctx, test=True)
+    opt = ctx.get_option_group('Configuration options')
     opt.add_option('--no-utils', action='store_true', dest='no_utils',
-                   help='Do not build command line utilities')
+                   help='do not build command line utilities')
     opt.add_option('--static', action='store_true', dest='static',
-                   help='Build static library')
+                   help='build static library')
     opt.add_option('--no-shared', action='store_true', dest='no_shared',
-                   help='Do not build shared library')
+                   help='do not build shared library')
     opt.add_option('--static-progs', action='store_true', dest='static_progs',
-                   help='Build programs as static binaries')
+                   help='build programs as static binaries')
     opt.add_option('--dump', type='string', default='', dest='dump',
-                   help='Dump debugging output (iter, search, write, all)')
+                   help='dump debugging output (iter, search, write, all)')
 
 def configure(conf):
     conf.load('compiler_c')
@@ -45,7 +46,6 @@ def configure(conf):
             pass
 
     autowaf.configure(conf)
-    autowaf.set_c99_mode(conf)
     autowaf.display_header('Sord configuration')
 
     conf.env.BUILD_UTILS  = not Options.options.no_utils
@@ -84,6 +84,8 @@ def configure(conf):
     autowaf.set_lib_env(conf, 'sord', SORD_VERSION)
     conf.write_config_header('sord_config.h', remove=False)
 
+    autowaf.display_msg(conf, 'Static library', bool(conf.env.BUILD_STATIC))
+    autowaf.display_msg(conf, 'Shared library', bool(conf.env.BUILD_SHARED))
     autowaf.display_msg(conf, 'Utilities', bool(conf.env.BUILD_UTILS))
     autowaf.display_msg(conf, 'Unit tests', bool(conf.env.BUILD_TESTS))
     autowaf.display_msg(conf, 'Debug dumping', dump)
@@ -235,7 +237,7 @@ def build(bld):
         bld.add_post_fun(fix_docs)
 
 def lint(ctx):
-    subprocess.call('cpplint.py --filter=+whitespace/comments,-whitespace/tab,-whitespace/braces,-whitespace/labels,-build/header_guard,-readability/casting,-readability/todo,-build/include src/*.* sord/* src/zix/*.*', shell=True)
+    subprocess.call('clang-tidy -checks="*,-misc-unused-parameters,-readability-else-after-return,-llvm-header-guard,-google-readability-todo,-llvm-include-order,-clang-analyzer-alpha.*,-readability-inconsistent-declaration-parameter-name" -extra-arg="-std=c99" -extra-arg="-I." -extra-arg="-I../serd" -extra-arg="-I./src" -extra-arg="-Ibuild" ./sord/*.h ./src/*.c ./src/*.h', shell=True)
 
 def fix_docs(ctx):
     if ctx.cmd == 'build':
@@ -273,7 +275,7 @@ def test(ctx):
 
     nul = os.devnull
 
-    snippet = '<s> <p> <o> .'
+    snippet = '<http://example.org/s> <http://example.org/p> <http://example.org/o> .'
     if sys.platform == "win32":
         snippet = snippet.replace('<', '^<').replace('>', '^>')
     else:
