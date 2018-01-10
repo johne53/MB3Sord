@@ -37,16 +37,16 @@ def options(ctx):
                    help='dump debugging output (iter, search, write, all)')
 
 def configure(conf):
-    conf.load('compiler_c')
+    autowaf.display_header('Sord configuration')
+    conf.load('compiler_c', cache=True)
     if Options.options.build_tests:
         try:
-            conf.load('compiler_cxx')
+            conf.load('compiler_cxx', cache=True)
         except:
             Logs.warn("No C++ compiler, sordmm.hpp compile test skipped")
             pass
 
-    autowaf.configure(conf)
-    autowaf.display_header('Sord configuration')
+    conf.load('autowaf', cache=True)
 
     conf.env.BUILD_UTILS  = not Options.options.no_utils
     conf.env.BUILD_SHARED = not Options.options.no_shared
@@ -84,6 +84,7 @@ def configure(conf):
     autowaf.set_lib_env(conf, 'sord', SORD_VERSION)
     conf.write_config_header('sord_config.h', remove=False)
 
+    autowaf.display_summary(conf)
     autowaf.display_msg(conf, 'Static library', bool(conf.env.BUILD_STATIC))
     autowaf.display_msg(conf, 'Shared library', bool(conf.env.BUILD_SHARED))
     autowaf.display_msg(conf, 'Utilities', bool(conf.env.BUILD_UTILS))
@@ -109,7 +110,7 @@ def build(bld):
     if bld.env.MSVC_COMPILER:
         libflags = []
         libs     = []
-        defines  = ['snprintf=_snprintf']
+        defines  = []
 
     # Shared Library
     if bld.env.BUILD_SHARED:
@@ -237,7 +238,19 @@ def build(bld):
         bld.add_post_fun(fix_docs)
 
 def lint(ctx):
-    subprocess.call('clang-tidy -checks="*,-misc-unused-parameters,-readability-else-after-return,-llvm-header-guard,-google-readability-todo,-llvm-include-order,-clang-analyzer-alpha.*,-readability-inconsistent-declaration-parameter-name" -extra-arg="-std=c99" -extra-arg="-I." -extra-arg="-I../serd" -extra-arg="-I./src" -extra-arg="-Ibuild" ./sord/*.h ./src/*.c ./src/*.h', shell=True)
+    "checks code for style issues"
+    import subprocess
+    cmd = ("clang-tidy -p=. -header-filter=.* -checks=\"*," +
+           "-cert-dcl03-c," +
+           "-clang-analyzer-alpha.*," +
+           "-google-readability-todo," +
+           "-llvm-header-guard," +
+           "-llvm-include-order," +
+           "-misc-static-assert," +
+           "-misc-unused-parameters," +
+           "-readability-else-after-return\" " +
+           "../src/*.c")
+    subprocess.call(cmd, cwd='build', shell=True)
 
 def fix_docs(ctx):
     if ctx.cmd == 'build':
