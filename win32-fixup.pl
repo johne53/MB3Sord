@@ -4,12 +4,12 @@
 require "../local-paths.lib";
 
 $package_string = "\"sord 0.16\"";
-$version_string = "\"0.16.1\"";
-$sord_version = "0.16.1";
+$version_string = "\"0.16.2\"";
+$sord_version = "0.16.2";
 $major = 0;
 $minor = 16;
-$micro = 1;
-$binary_age = 1601;
+$micro = 2;
+$binary_age = 1602;
 $interface_age = 0;
 $current_minus_age = 0;
 $gettext_package = "sord";
