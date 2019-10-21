@@ -53,9 +53,8 @@ def configure(conf):
     conf.env.BUILD_STATIC = (Options.options.static or
                              Options.options.static_progs)
 
-    autowaf.check_pkg(conf, 'serd-0', uselib_store='SERD',
-                      atleast_version='0.30.0', mandatory=True)
-    autowaf.check_pkg(conf, 'libpcre', uselib_store='PCRE', mandatory=False)
+    conf.check_pkg('serd-0 >= 0.30.0', uselib_store='SERD')
+    conf.check_pkg('libpcre', uselib_store='PCRE', mandatory=False)
 
     if conf.env.HAVE_PCRE:
         if conf.check(cflags=['-pthread'], mandatory=False):
@@ -73,11 +72,11 @@ def configure(conf):
     dump = Options.options.dump.split(',')
     all = 'all' in dump
     if all or 'iter' in dump:
-        autowaf.define(conf, 'SORD_DEBUG_ITER', 1)
+        conf.define('SORD_DEBUG_ITER', 1)
     if all or 'search' in dump:
-        autowaf.define(conf, 'SORD_DEBUG_SEARCH', 1)
+        conf.define('SORD_DEBUG_SEARCH', 1)
     if all or 'write' in dump:
-        autowaf.define(conf, 'SORD_DEBUG_WRITE', 1)
+        conf.define('SORD_DEBUG_WRITE', 1)
 
     autowaf.set_lib_env(conf, 'sord', SORD_VERSION)
     conf.write_config_header('sord_config.h', remove=False)
@@ -269,6 +268,10 @@ def test(tst):
             os.remove(i)
     except:
         pass
+
+    if sys.platform == 'win32':
+        Logs.warn('Tests disabled on Windows')
+        return
 
     srcdir = tst.path.abspath()
     sordi = './sordi_static'
