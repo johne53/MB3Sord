@@ -11,7 +11,7 @@ from waflib.extras import autowaf
 # major increment <=> incompatible changes
 # minor increment <=> compatible changes (additions)
 # micro increment <=> no interface changes
-SORD_VERSION       = '0.16.2'
+SORD_VERSION       = '0.16.4'
 SORD_MAJOR_VERSION = '0'
 
 # Mandatory waf variables
@@ -19,6 +19,11 @@ APPNAME = 'sord'        # Package name for waf dist
 VERSION = SORD_VERSION  # Package version for waf dist
 top     = '.'           # Source directory
 out     = 'build'       # Build directory
+
+# Release variables
+uri          = 'http://drobilla.net/sw/sord'
+dist_pattern = 'http://download.drobilla.net/sord-%d.%d.%d.tar.bz2'
+post_tags    = ['Hacking', 'RDF', 'Sord']
 
 def options(ctx):
     ctx.load('compiler_c')
@@ -96,8 +101,9 @@ def build(bld):
     bld.install_files(includedir, bld.path.ant_glob('sord/*.hpp'))
 
     # Pkgconfig file
-    autowaf.build_pc(bld, 'SORD', SORD_VERSION, SORD_MAJOR_VERSION, 'SERD',
-                     {'SORD_MAJOR_VERSION' : SORD_MAJOR_VERSION})
+    autowaf.build_pc(bld, 'SORD', SORD_VERSION, SORD_MAJOR_VERSION, [],
+                     {'SORD_MAJOR_VERSION' : SORD_MAJOR_VERSION,
+                      'SORD_PKG_DEPS'      : 'serd-0'})
 
     source = 'src/sord.c src/syntax.c'
 
@@ -269,8 +275,9 @@ def test(tst):
     except:
         pass
 
-    if sys.platform == 'win32':
-        Logs.warn('Tests disabled on Windows')
+    if sys.platform == 'win32' and '/DNDEBUG' not in tst.env.CFLAGS:
+        # FIXME: Sort out DLL memory freeing situation in next major version
+        Logs.warn("Skipping tests for Windows debug build")
         return
 
     srcdir = tst.path.abspath()

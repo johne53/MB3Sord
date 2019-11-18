@@ -1,3 +1,6 @@
+# MB3Sord
+Localised serd repo for Mixbus 3 (Windows)
+
 Sord
 ====
 
