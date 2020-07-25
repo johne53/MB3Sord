@@ -30,6 +30,12 @@
 #include "sord_config.h"
 #include "sord_internal.h"
 
+#ifdef __GNUC__
+#    define SORD_LOG_FUNC(fmt, arg1) __attribute__((format(printf, fmt, arg1)))
+#else
+#    define SORD_LOG_FUNC(fmt, arg1)
+#endif
+
 #define SORD_LOG(prefix, ...) fprintf(stderr, "[Sord::" prefix "] " __VA_ARGS__)
 
 #ifdef SORD_DEBUG_ITER
@@ -62,9 +68,6 @@
 	TUP_FMT_ELEM((t)[2]), \
 	TUP_FMT_ELEM((t)[3])
 
-#define TUP_S 0
-#define TUP_P 1
-#define TUP_O 2
 #define TUP_G 3
 
 /** Triple ordering */
@@ -173,6 +176,7 @@ sord_node_hash_equal(const void* a, const void* b)
 		    (serd_node_equals(&a_node->node, &b_node->node)));
 }
 
+SORD_LOG_FUNC(3, 4)
 static void
 error(SordWorld* world, SerdStatus st, const char* fmt, ...)
 {
@@ -258,6 +262,7 @@ sord_node_compare(const SordNode* a, const SordNode* b)
 		if (cmp == 0) {
 			cmp = strcmp(a->meta.lit.lang, b->meta.lit.lang);
 		}
+		break;
 	default:
 		break;
 	}
@@ -298,7 +303,7 @@ sord_quad_match(const SordQuad x, const SordQuad y)
    other possible ID, except itself.
 */
 static int
-sord_quad_compare(const void* x_ptr, const void* y_ptr, void* user_data)
+sord_quad_compare(const void* x_ptr, const void* y_ptr, const void* user_data)
 {
 	const int* const           ordering = (const int*)user_data;
 	const SordNode*const*const x        = (const SordNode*const*)x_ptr;
@@ -803,7 +808,7 @@ sord_find(SordModel* model, const SordQuad pat)
 	int             n_prefix;
 	const SordOrder index_order = sord_best_index(model, pat, &mode, &n_prefix);
 
-	SORD_FIND_LOG("Find " TUP_FMT "  index=%s  mode=%d  n_prefix=%d\n",
+	SORD_FIND_LOG("Find " TUP_FMT "  index=%s  mode=%u  n_prefix=%d\n",
 	              TUP_FMT_ARGS(pat), order_names[index_order], mode, n_prefix);
 
 	if (pat[0] && pat[1] && pat[2] && pat[3]) {
@@ -1080,7 +1085,7 @@ sord_new_literal_counted(SordWorld*     world,
 	key.meta.lit.datatype = sord_node_copy(datatype);
 	memset(key.meta.lit.lang, 0, sizeof(key.meta.lit.lang));
 	if (lang) {
-		strncpy(key.meta.lit.lang, lang, sizeof(key.meta.lit.lang));
+		strncpy(key.meta.lit.lang, lang, sizeof(key.meta.lit.lang) - 1);
 	}
 
 	return sord_insert_node(world, &key, true);
@@ -1116,7 +1121,7 @@ sord_node_from_serd_node(SordWorld*      world,
 		return NULL;
 	case SERD_LITERAL:
 		datatype_node = sord_node_from_serd_node(
-			world, env, datatype, NULL, NULL),
+			world, env, datatype, NULL, NULL);
 		ret = sord_new_literal_counted(
 			world,
 			datatype_node,
