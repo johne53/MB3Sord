@@ -51,6 +51,7 @@ def configure(conf):
 
     conf.load('autowaf', cache=True)
     autowaf.set_c_lang(conf, 'c99')
+    autowaf.set_cxx_lang(conf, 'c++11')
 
     conf.env.BUILD_UTILS  = not Options.options.no_utils
     conf.env.BUILD_SHARED = not Options.options.no_shared
@@ -104,14 +105,9 @@ def configure(conf):
             'gcc': [
                 '-Wno-effc++',
                 '-Wno-multiple-inheritance',
-                '-Wno-old-style-cast',
-                '-Wno-zero-as-null-pointer-constant',
             ],
             'clang': [
-                '-Wno-deprecated-copy-dtor',
                 '-Wno-implicit-float-conversion',
-                '-Wno-old-style-cast',
-                '-Wno-zero-as-null-pointer-constant',
             ],
             'msvc': [
                 '/wd4571',  # catch semantics changed
