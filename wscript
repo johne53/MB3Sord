@@ -11,7 +11,7 @@ from waflib.extras import autowaf
 # major increment <=> incompatible changes
 # minor increment <=> compatible changes (additions)
 # micro increment <=> no interface changes
-SORD_VERSION       = '0.16.5'
+SORD_VERSION       = '0.16.9'
 SORD_MAJOR_VERSION = '0'
 
 # Mandatory waf variables
@@ -62,20 +62,25 @@ def configure(conf):
     if Options.options.ultra_strict:
         autowaf.add_compiler_flags(conf.env, '*', {
             'gcc': [
+                '-Wno-cast-align',
                 '-Wno-cast-qual',
                 '-Wno-conversion',
+                '-Wno-inline',
                 '-Wno-padded',
                 '-Wno-sign-conversion',
                 '-Wno-stack-protector',
+                '-Wno-suggest-attribute=const',
+                '-Wno-suggest-attribute=pure',
                 '-Wno-switch-enum',
                 '-Wno-unused-macros',
                 '-Wno-unused-parameter',
                 '-Wno-vla',
             ],
             'clang': [
+                '-Wno-cast-align',
                 '-Wno-cast-qual',
-                '-Wno-extra-semi-stmt',
                 '-Wno-format-nonliteral',
+                '-Wno-nullability-extension',
                 '-Wno-padded',
                 '-Wno-reserved-id-macro',
                 '-Wno-shorten-64-to-32',
@@ -141,8 +146,15 @@ def configure(conf):
     if all or 'write' in dump:
         conf.define('SORD_DEBUG_WRITE', 1)
 
-    autowaf.set_lib_env(conf, 'sord', SORD_VERSION)
-    conf.write_config_header('sord_config.h', remove=False)
+    # Set up environment for building/using as a subproject
+    autowaf.set_lib_env(conf, 'sord', SORD_VERSION,
+                        include_path=str(conf.path.find_node('include')))
+
+    if conf.env.BUILD_UTILS and conf.env.HAVE_PCRE:
+        sord_validate_node = conf.path.get_bld().make_node('sord_validate')
+        conf.env.SORD_VALIDATE = [sord_validate_node.abspath()]
+
+    conf.define('SORD_NO_DEFAULT_CONFIG', 1)
 
     autowaf.display_summary(
         conf,
@@ -155,8 +167,8 @@ def configure(conf):
 def build(bld):
     # C/C++ Headers
     includedir = '${INCLUDEDIR}/sord-%s/sord' % SORD_MAJOR_VERSION
-    bld.install_files(includedir, bld.path.ant_glob('sord/*.h'))
-    bld.install_files(includedir, bld.path.ant_glob('sord/*.hpp'))
+    bld.install_files(includedir, bld.path.ant_glob('include/sord/*.h'))
+    bld.install_files(includedir, bld.path.ant_glob('include/sord/*.hpp'))
 
     # Pkgconfig file
     autowaf.build_pc(bld, 'SORD', SORD_VERSION, SORD_MAJOR_VERSION, [],
@@ -177,30 +189,33 @@ def build(bld):
     if bld.env.BUILD_SHARED:
         obj = bld(features        = 'c cshlib',
                   source          = source,
-                  includes        = ['.', './src'],
-                  export_includes = ['.'],
+                  includes        = ['.', 'include', './src'],
+                  export_includes = ['.', 'include'],
                   name            = 'libsord',
                   target          = 'sord-%s' % SORD_MAJOR_VERSION,
                   vnum            = SORD_VERSION,
                   install_path    = '${LIBDIR}',
                   libs            = libs,
                   uselib          = 'SERD',
-                  defines         = defines + ['SORD_SHARED', 'SORD_INTERNAL'],
+                  defines         = defines + ['SORD_INTERNAL', 'ZIX_STATIC'],
                   cflags          = libflags)
 
     # Static Library
     if bld.env.BUILD_STATIC:
         obj = bld(features        = 'c cstlib',
                   source          = source,
-                  includes        = ['.', './src'],
-                  export_includes = ['.'],
+                  includes        = ['.', 'include', './src'],
+                  export_includes = ['.', 'include'],
                   name            = 'libsord_static',
                   target          = 'sord-%s' % SORD_MAJOR_VERSION,
                   vnum            = SORD_VERSION,
                   install_path    = '${LIBDIR}',
                   libs            = libs,
                   uselib          = 'SERD',
-                  defines         = ['SORD_INTERNAL'])
+                  defines         = ['SORD_STATIC',
+                                     'SORD_INTERNAL',
+                                     'ZIX_STATIC',
+                                     'ZIX_INTERNAL'])
 
     if bld.env.BUILD_TESTS:
         test_libs      = libs
@@ -213,11 +228,14 @@ def build(bld):
         # Profiled static library for test coverage
         obj = bld(features     = 'c cstlib',
                   source       = source,
-                  includes     = ['.', './src'],
+                  includes     = ['.', 'include', './src'],
                   name         = 'libsord_profiled',
                   target       = 'sord_profiled',
                   install_path = '',
-                  defines      = defines,
+                  defines      = defines + ['SORD_STATIC',
+                                            'SORD_INTERNAL',
+                                            'ZIX_STATIC',
+                                            'ZIX_INTERNAL'],
                   cflags       = test_cflags,
                   linkflags    = test_linkflags,
                   lib          = test_libs,
@@ -226,12 +244,12 @@ def build(bld):
         # Unit test program
         obj = bld(features     = 'c cprogram',
                   source       = 'src/sord_test.c',
-                  includes     = ['.', './src'],
+                  includes     = ['.', 'include', './src'],
                   use          = 'libsord_profiled',
                   lib          = test_libs,
                   target       = 'sord_test',
                   install_path = '',
-                  defines      = defines,
+                  defines      = defines + ['SORD_STATIC', 'ZIX_STATIC'],
                   cflags       = test_cflags,
                   linkflags    = test_linkflags,
                   uselib       = 'SERD')
@@ -239,12 +257,12 @@ def build(bld):
         # Static profiled sordi for tests
         obj = bld(features     = 'c cprogram',
                   source       = 'src/sordi.c',
-                  includes     = ['.', './src'],
+                  includes     = ['.', 'include', './src'],
                   use          = 'libsord_profiled',
                   lib          = test_libs,
                   target       = 'sordi_static',
                   install_path = '',
-                  defines      = defines,
+                  defines      = defines + ['SORD_STATIC', 'ZIX_STATIC'],
                   cflags       = test_cflags,
                   linkflags    = test_linkflags,
                   uselib       = 'SERD')
@@ -253,12 +271,12 @@ def build(bld):
         if bld.env.COMPILER_CXX:
             obj = bld(features     = 'cxx cxxprogram',
                       source       = 'src/sordmm_test.cpp',
-                      includes     = ['.', './src'],
+                      includes     = ['.', 'include', './src'],
                       use          = 'libsord_profiled',
                       lib          = test_libs,
                       target       = 'sordmm_test',
                       install_path = '',
-                      defines      = defines,
+                      defines      = defines + ['SORD_STATIC', 'ZIX_STATIIC'],
                       cxxflags     = test_cflags,
                       linkflags    = test_linkflags,
                       uselib       = 'SERD')
@@ -271,7 +289,7 @@ def build(bld):
         for i in utils:
             obj = bld(features     = 'c cprogram',
                       source       = 'src/%s.c' % i,
-                      includes     = ['.', './src'],
+                      includes     = ['.', 'include', './src'],
                       use          = 'libsord',
                       lib          = libs,
                       uselib       = 'SERD',
@@ -295,8 +313,6 @@ def build(bld):
     bld.install_files('${MANDIR}/man1', bld.path.ant_glob('doc/*.1'))
 
     bld.add_post_fun(autowaf.run_ldconfig)
-    if bld.env.DOCS:
-        bld.add_post_fun(fix_docs)
 
 def lint(ctx):
     "checks code for style issues"
@@ -312,10 +328,6 @@ def lint(ctx):
            "-readability-else-after-return\" " +
            "../src/*.c")
     subprocess.call(cmd, cwd='build', shell=True)
-
-def fix_docs(ctx):
-    if ctx.cmd == 'build':
-        autowaf.make_simple_dox(APPNAME)
 
 def upload_docs(ctx):
     os.system('rsync -ravz --delete -e ssh build/doc/html/ drobilla@drobilla.net:~/drobilla.net/docs/sord/')
@@ -333,16 +345,11 @@ def test(tst):
     except:
         pass
 
-    if sys.platform == 'win32' and '/DNDEBUG' not in tst.env.CFLAGS:
-        # FIXME: Sort out DLL memory freeing situation in next major version
-        Logs.warn("Skipping tests for Windows debug build")
-        return
-
     srcdir = tst.path.abspath()
     sordi = './sordi_static'
     base = 'http://example.org/'
     snippet = '<{0}s> <{0}p> <{0}o> .\n'.format(base)
-    manifest = 'file://%s/tests/manifest.ttl' % srcdir
+    manifest = 'file://%s/tests/manifest.ttl' % srcdir.replace('\\', '/')
 
     with tst.group('Unit') as check:
         check(['./sord_test'])

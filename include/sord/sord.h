@@ -1,5 +1,5 @@
 /*
-  Copyright 2011-2016 David Robillard <http://drobilla.net>
+  Copyright 2011-2016 David Robillard <d@drobilla.net>
 
   Permission to use, copy, modify, and/or distribute this software for any
   purpose with or without fee is hereby granted, provided that the above
@@ -21,28 +21,20 @@
 #ifndef SORD_SORD_H
 #define SORD_SORD_H
 
+#include "serd/serd.h"
+
 #if (!defined (_MSC_VER) || (_MSC_VER >= 1900)) // Test added by JE - 20-08-2020
 #include <stdbool.h>
 #endif
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
-#include "serd/serd.h"
-
-#ifdef SORD_SHARED
-#    ifdef _WIN32
-#        define SORD_LIB_IMPORT __declspec(dllimport)
-#        define SORD_LIB_EXPORT __declspec(dllexport)
-#    else
-#        define SORD_LIB_IMPORT __attribute__((visibility("default")))
-#        define SORD_LIB_EXPORT __attribute__((visibility("default")))
-#    endif
-#    ifdef SORD_INTERNAL
-#        define SORD_API SORD_LIB_EXPORT
-#    else
-#        define SORD_API SORD_LIB_IMPORT
-#    endif
+#if defined(_WIN32) && !defined(SORD_STATIC) && defined(SORD_INTERNAL)
+#  define SORD_API __declspec(dllexport)
+#elif defined(_WIN32) && !defined(SORD_STATIC)
+#  define SORD_API __declspec(dllimport)
+#elif defined(__GNUC__)
+#  define SORD_API __attribute__((visibility("default")))
 #else
 #    define SORD_API
 #endif
@@ -304,8 +296,7 @@ sord_node_is_inline_object(const SordNode* node);
 */
 SORD_API
 bool
-sord_node_equals(const SordNode* a,
-                 const SordNode* b);
+sord_node_equals(const SordNode* a, const SordNode* b);
 
 /**
    Return a SordNode as a SerdNode.
@@ -348,9 +339,7 @@ sord_node_from_serd_node(SordWorld*      world,
 */
 SORD_API
 SordModel*
-sord_new(SordWorld* world,
-         unsigned  indices,
-         bool      graphs);
+sord_new(SordWorld* world, unsigned indices, bool graphs);
 
 /**
    Close and free `model`.
@@ -499,8 +488,7 @@ sord_erase(SordModel* model, SordIter* iter);
 */
 SORD_API
 SordInserter*
-sord_inserter_new(SordModel* model,
-                  SerdEnv*   env);
+sord_inserter_new(SordModel* model, SerdEnv* env);
 
 /**
    Free an inserter.
@@ -516,8 +504,7 @@ sord_inserter_free(SordInserter* inserter);
 */
 SORD_API
 SerdStatus
-sord_inserter_set_base_uri(SordInserter*   inserter,
-                           const SerdNode* uri);
+sord_inserter_set_base_uri(SordInserter* inserter, const SerdNode* uri);
 
 /**
    Set a namespace prefix for writing to the model.
@@ -634,9 +621,7 @@ sord_new_reader(SordModel* model,
 */
 SORD_API
 bool
-sord_write(SordModel*  model,
-           SerdWriter* writer,
-           SordNode*   graph);
+sord_write(SordModel* model, SerdWriter* writer, SordNode* graph);
 
 /**
    Write a range to a writer.
@@ -645,8 +630,7 @@ sord_write(SordModel*  model,
 */
 SORD_API
 bool
-sord_write_iter(SordIter*   iter,
-                SerdWriter* writer);
+sord_write_iter(SordIter* iter, SerdWriter* writer);
 
 /**
    @}

@@ -1,5 +1,5 @@
 /*
-  Copyright 2011-2015 David Robillard <http://drobilla.net>
+  Copyright 2011-2015 David Robillard <d@drobilla.net>
 
   Permission to use, copy, modify, and/or distribute this software for any
   purpose with or without fee is hereby granted, provided that the above
@@ -17,36 +17,37 @@
 #ifndef SORD_SORD_INTERNAL_H
 #define SORD_SORD_INTERNAL_H
 
-#include <stddef.h>
-#include <stdint.h>
-
+#include "serd/serd.h"
 #include "sord/sord.h"
 
-#if defined(__GNUC__) && __GNUC__ > 4
-#    define SORD_UNREACHABLE() __builtin_unreachable()
+#include <stddef.h>
+
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ > 4)
+#  define SORD_UNREACHABLE() __builtin_unreachable()
 #else
-#    define SORD_UNREACHABLE() assert(false)
+#  include <assert.h>
+#  define SORD_UNREACHABLE() assert(0)
 #endif
 
 /** Resource node metadata */
 typedef struct {
-	size_t refs_as_obj;  ///< References as a quad object
+  size_t refs_as_obj; ///< References as a quad object
 } SordResourceMetadata;
 
 /** Literal node metadata */
 typedef struct {
-	SordNode* datatype;  ///< Optional literal data type URI
-	char      lang[16];  ///< Optional language tag
+  SordNode* datatype; ///< Optional literal data type URI
+  char      lang[16]; ///< Optional language tag
 } SordLiteralMetadata;
 
 /** Node */
 struct SordNodeImpl {
-	SerdNode node;  ///< Serd node
-	size_t   refs;  ///< Reference count (# of containing quads)
-	union {
-		SordResourceMetadata res;
-		SordLiteralMetadata  lit;
-	} meta;
+  SerdNode node; ///< Serd node
+  size_t   refs; ///< Reference count (# of containing quads)
+  union {
+    SordResourceMetadata res;
+    SordLiteralMetadata  lit;
+  } meta;
 };
 
 #endif /* SORD_SORD_INTERNAL_H */

@@ -1,8 +1,30 @@
+sord (0.16.9) unstable;
+
+  * Fix potential crash or incorrectness issue with GCC 10 again
+
+ -- David Robillard <d@drobilla.net>  Tue, 12 Jan 2021 14:17:39 +0000
+
+sord (0.16.8) stable;
+
+  * Clean up code
+  * Fix potential undefined behavior
+  * Fix potentially incorrect search results
+  * Remove the need for a generated configuration header
+
+ -- David Robillard <d@drobilla.net>  Thu, 07 Jan 2021 21:33:53 +0000
+
+sord (0.16.6) stable;
+
+  * Fix potential crash or incorrectness issues with GCC 10
+  * Fix various minor warnings and other code quality issues
+
+ -- David Robillard <d@drobilla.net>  Sun, 27 Sep 2020 11:08:18 +0000
+
 sord (0.16.4) stable;
 
   * Update build system
 
- -- David Robillard <d@drobilla.net>  Sun, 10 Nov 2019 22:26:16 +0100
+ -- David Robillard <d@drobilla.net>  Sun, 10 Nov 2019 21:26:16 +0000
 
 sord (0.16.2) stable;
 
