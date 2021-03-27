@@ -17,7 +17,9 @@
 #ifndef ZIX_COMMON_H
 #define ZIX_COMMON_H
 
+#if (!defined (_MSC_VER) || (_MSC_VER >= 1900)) // Test added by JE - 27-03-2021
 #include <stdbool.h>
+#endif
 
 /**
    @addtogroup zix

@@ -43,8 +43,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/FI$(TargetSxsFolder)\targetsxs.h"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
-				PreprocessorDefinitions="_WIN32;WIN32;DEBUG;_DEBUG;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
+				AdditionalIncludeDirectories="..\..;..;..\..\include;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
+				PreprocessorDefinitions="ZIX_INTERNAL;_WIN32;WIN32;DEBUG;_DEBUG;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="false"
@@ -130,8 +130,8 @@
 				AdditionalOptions="/FI$(TargetSxsFolder)\targetsxs.h"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..;..;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
-				PreprocessorDefinitions="_SECURE_SCL=0;NDEBUG;WIN32;_WIN32;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
+				AdditionalIncludeDirectories="..\..;..;..\..\include;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
+				PreprocessorDefinitions="_SECURE_SCL=0;ZIX_INTERNAL;NDEBUG;WIN32;_WIN32;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
 				StringPooling="false"
 				RuntimeLibrary="2"
 				EnableEnhancedInstructionSet="1"
@@ -216,8 +216,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/FI$(TargetSxsFolder)\targetsxs.h"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
-				PreprocessorDefinitions="_SECURE_SCL=0;NDEBUG;WIN32;_WIN32;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
+				AdditionalIncludeDirectories="..\..;..;..\..\include;&quot;..\..\..\..\include\serd-0&quot;;..\..\..\..\include"
+				PreprocessorDefinitions="_SECURE_SCL=0;ZIX_INTERNAL;NDEBUG;WIN32;_WIN32;snprintf=_snprintf;SORD_INTERNAL;SORD_SHARED;SORD_MAJOR_VERSION=\&quot;0\&quot;"
 				StringPooling="false"
 				RuntimeLibrary="2"
 				EnableEnhancedInstructionSet="1"
@@ -270,7 +270,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="mkdir &quot;$(GenericLibraryFolder)\pkgconfig&quot; 2&gt; NUL&#x0D;&#x0A;mkdir &quot;$(GenericIncludeFolder)\sord-0\sord&quot; 2&gt; NUL&#x0D;&#x0A;copy /Y &quot;..\..\sord\*.h&quot; &quot;$(GenericIncludeFolder)\sord-0\sord\&quot;&#x0D;&#x0A;copy /Y &quot;..\..\sord\*.hpp&quot; &quot;$(GenericIncludeFolder)\sord-0\sord\&quot;&#x0D;&#x0A;copy /Y &quot;$(OutDir)\$(TargetName).dll&quot; &quot;$(Release32TestSuiteFolder)\$(TargetName).dll&quot;&#x0D;&#x0A;copy /Y &quot;$(OutDir)\$(TargetName).lib&quot; &quot;$(GenericWin32LibraryFolder)\$(TargetName).lib&quot;&#x0D;&#x0A;copy /Y &quot;..\..\sord.pc&quot; &quot;$(GenericLibraryFolder)\pkgconfig&quot;&#x0D;&#x0A;"
+				CommandLine="mkdir &quot;$(GenericLibraryFolder)\pkgconfig&quot; 2&gt; NUL&#x0D;&#x0A;mkdir &quot;$(GenericIncludeFolder)\sord-0\sord&quot; 2&gt; NUL&#x0D;&#x0A;copy /Y &quot;..\..\include\sord\*.h&quot; &quot;$(GenericIncludeFolder)\sord-0\sord\&quot;&#x0D;&#x0A;copy /Y &quot;..\..\include\sord\*.hpp&quot; &quot;$(GenericIncludeFolder)\sord-0\sord\&quot;&#x0D;&#x0A;copy /Y &quot;$(OutDir)\$(TargetName).dll&quot; &quot;$(Release32TestSuiteFolder)\$(TargetName).dll&quot;&#x0D;&#x0A;copy /Y &quot;$(OutDir)\$(TargetName).lib&quot; &quot;$(GenericWin32LibraryFolder)\$(TargetName).lib&quot;&#x0D;&#x0A;copy /Y &quot;..\..\sord.pc&quot; &quot;$(GenericLibraryFolder)\pkgconfig&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
