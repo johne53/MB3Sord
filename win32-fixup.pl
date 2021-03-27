@@ -66,7 +66,6 @@ if (-1 != index($command, "-X64")) {
 }
 
 process_file ("sord.pc");
-process_file ("build/sord_config.h");
 
 if ($command eq -buildall) {
 	process_file ("build/msvc/sord.rc");
